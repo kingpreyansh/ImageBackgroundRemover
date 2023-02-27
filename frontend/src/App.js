@@ -1,48 +1,56 @@
+import React, {useState} from "react";
+import "./App.scss";
+import Header from "./components/Header";
+import Navbar from "./components/Navbar";
 import axios from "axios";
-import { useState } from "react";
-import "./App.css";
 
 function App() {
-  const [uploadImage, setUploadImage] = useState();
-  const [image, setImage] = useState();
-  const [maskImage, setMaskImage] = useState();
-  function handleChange(e) {
-    console.log(e.target.files);
-    setUploadImage(URL.createObjectURL(e.target.files[0]));
+  const [img, setImg] = useState();
+  const [file, setFile] = useState();
+
+  const onRemoveBg = () => {
     var formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    formData.append("image", file);
     axios({
       method: "post",
       url: "http://localhost:3000/remove-bg",
       data: formData,
     })
       .then((response) => {
-        console.log(response.data);
-        setImage(response.data.image);
-        setMaskImage(response.data.mask);
+        setImg(response.data.image);
       })
       .catch((error) => {
         console.log(error);
       });
   }
+
+  const onDownload = () => {
+    if (file) {
+      var element = document.createElement("a");
+      element.href = URL.createObjectURL(file);
+      element.download = file.name;
+      element.click();
+    }
+  };
+
   return (
     <div className="App">
-      <h1>Please upload photo</h1>
-      <label>
-        Upload image
-        <input
-          style={{ display: "none" }}
-          type="file"
-          accept={"image/*"}
-          onChange={handleChange}
+      <Header/>
+      <div className="container">
+        <Navbar
+          onChangeImg={(file) => {
+            setImg(URL.createObjectURL(file));
+            setFile(file);
+          }}
+          onRemoveBg={() => onRemoveBg()}
+          onDownload={() => onDownload()}
         />
-      </label>
-      <div>
-        <img src={uploadImage} width="30%" />
-        <img src={image} width="30%" />
-        <img src={maskImage} width="30%" />
+        <div className="page-content">
+          <div className="img-box">
+            <img src={img}/>
+          </div>
+        </div>
       </div>
-      
     </div>
   );
 }
